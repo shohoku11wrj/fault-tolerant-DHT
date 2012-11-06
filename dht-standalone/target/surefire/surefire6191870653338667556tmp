@@ -1,0 +1,5 @@
+#surefire
+#Fri Nov 02 20:29:56 EDT 2012
+user.dir=/home/ranger/Stevens/cs549/a3/dht-standalone
+localRepository=/home/ranger/.m2/repository
+basedir=/home/ranger/Stevens/cs549/a3/dht-standalone
