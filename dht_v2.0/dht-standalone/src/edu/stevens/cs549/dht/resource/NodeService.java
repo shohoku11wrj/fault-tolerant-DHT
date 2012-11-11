@@ -67,7 +67,7 @@ public class NodeService {
 	
 	/* 
 	 * TODO
-	 * getSucc, getPred, closestPrecedingFinger, getKey, add, delete, setPred, setSucc
+	 * getSucc, getPred, closestPrecedingFinger, getKey, add, delete, 
 	 * ADD, Ranger, Otc 16
 	 */
 	/*public NodeInfo findPredessor(int id) throws WebApplicationException, Failed {
@@ -106,16 +106,16 @@ public class NodeService {
 	
 	// TODO, Ranger
 	// review it, for steps after dht.get(k)
-	public List<String> getKey(String k) throws Invalid {
+	public String[] getKey(String k) throws Invalid {
 		try{
 			List<String> keys = new ArrayList<String>();
 			String[] keyStrings = dht.get(k);
-			if(keyStrings != null) {
-				for(String item:keyStrings){
-					keys.add(item);
-				}
-			}
-			return keys;
+//			if(keyStrings != null) {
+//				for(String item:keyStrings){
+//					keys.add(item);
+//				}
+//			}
+			return keyStrings;
 		} catch (Error e) {
 			throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
 		}
@@ -129,11 +129,4 @@ public class NodeService {
 		dht.delete(k, v);
 	}
 
-	public void setPred(NodeInfo pred) throws Error {
-		dht.setPred(pred);
-	}
-	
-	/*public void setSucc(NodeInfo succ) throws Error, Failed {
-		dht.setSucc(succ);
-	}*/
 }

@@ -47,6 +47,10 @@ public class NodeResource {
 		return new JAXBElement<NodeInfo>(nsNodeInfo, NodeInfo.class, n);
 	}
 	
+	// TODO, Ranger
+	// ADD, new type for String[] getKey(String), Nov 11
+	
+	
     @GET 
     @Path("info")
     @Produces("application/xml")
@@ -98,73 +102,85 @@ public class NodeResource {
     	return nodeInfoRep(new NodeService(uriInfo).findSuccessor(id));
     }
 	
-	// TODO
-		/*
-		 * ADD, Ranger, Otc 31 2012
-		 * getSucc, getPred, closestPrecedingFinger, getKey, PUT, DELETE
-		 */
-		@GET
-		@Path("getSucc")
-		@Produces("application/xml")
-		public JAXBElement<NodeInfo> getSucc() throws WebApplicationException, Failed {
-			return nodeInfoRep(new NodeService(uriInfo).getSucc());
-		}
-		
-		@GET
-		@Path("getPred")
-		@Produces("application/xml")
-		public JAXBElement<NodeInfo> getPred() throws WebApplicationException, Failed {
-			return nodeInfoRep(new NodeService(uriInfo).getPred());
-		}
-		
-		@GET
-		@Path("finger")
-		@Produces("application/xml")
-		public JAXBElement<NodeInfo> closestPrecedingFinger(@QueryParam("id") String index)
-				throws WebApplicationException, Failed {
-			int id = Integer.parseInt(index);
-			return nodeInfoRep(new NodeService(uriInfo).closestPrecedingFinger(id));
-		}
-		
-		@GET
-		@Produces("application/xml")
-		public List<String> getKey(@QueryParam("key") String key) throws Invalid {
-			List<String> keys = new ArrayList<String>();
-			keys = new NodeService(uriInfo).getKey(key);
-			
-			if(keys != null) {
-				return keys;
-			} else {
-				return null;
+	// TODO, Ranger
+	/*
+	 * ADD, Ranger, Otc 31 2012
+	 * getSucc, getPred, closestPrecedingFinger, getKey, PUT, DELETE
+	 */
+	
+	@GET
+	@Path("getSucc")
+	@Produces("application/xml")
+	public JAXBElement<NodeInfo> getSucc() throws WebApplicationException, Failed {
+		return nodeInfoRep(new NodeService(uriInfo).getSucc());
+	}
+	
+	@GET
+	@Path("getPred")
+	@Produces("application/xml")
+	public JAXBElement<NodeInfo> getPred() throws WebApplicationException, Failed {
+		return nodeInfoRep(new NodeService(uriInfo).getPred());
+	}
+	
+	@GET
+	@Path("finger")
+	@Produces("application/xml")
+	public JAXBElement<NodeInfo> closestPrecedingFinger(@QueryParam("id") String index)
+			throws WebApplicationException, Failed {
+		int id = Integer.parseInt(index);
+		return nodeInfoRep(new NodeService(uriInfo).closestPrecedingFinger(id));
+	}
+	
+	public static final QName qnListString = new QName(ns, "ListString");
+	
+//	public static List<JAXBElement<String>> listStringRep(String key) {
+//		return new JAXBElement<NodeInfo>(qnListString, NodeInfo.class, n);
+//	}
+	
+	@GET
+	@Produces("application/xml")
+	public JAXBElement<String> getKey(@QueryParam("key") String key) throws Invalid {
+		String[] keys = new NodeService(uriInfo).getKey(key);
+		String keyToString = new String();
+		if(keys==null){
+			keyToString = null;
+		} else {
+			for(int i=0;i<keys.length;i++) {
+				keyToString+=keys[i]+";";
 			}
 		}
-		
-		@PUT
-		public void add(@QueryParam("key") String k, @QueryParam("val") String v) 
-				throws Error, Invalid, edu.stevens.cs549.dht.activity.DHTBase.Error {
-			new NodeService(uriInfo).add(k, v);
+		if(keyToString.length()>1){
+			keyToString=keyToString.substring(0, keyToString.length()-1);
 		}
-		
-		@DELETE
-		public void delete(@QueryParam("key") String k, @QueryParam("val") String v) 
-				throws Error, Invalid, edu.stevens.cs549.dht.activity.DHTBase.Error {
-			new NodeService(uriInfo).delete(k, v);
+		if(keys != null) {
+			//TableRow tr = new TableRow(key, keys);
+			//return new JAXBElement<TableRow>(nsTableRow, TableRow.class, tr);
+						
+			System.out.println("JAXBElement<String>= "+ keyToString);
+			return new JAXBElement<String>(qnListString, String.class, keyToString);
+		} else {
+			return null;
 		}
+	}
+	
+	@PUT
+	public void add(@QueryParam("key") String k, @QueryParam("val") String v) 
+			throws Error, Invalid, edu.stevens.cs549.dht.activity.DHTBase.Error {
+		new NodeService(uriInfo).add(k, v);
+	}
+	
+	@DELETE
+	public void delete(@QueryParam("key") String k, @QueryParam("val") String v) 
+			throws Error, Invalid, edu.stevens.cs549.dht.activity.DHTBase.Error {
+		new NodeService(uriInfo).delete(k, v);
+	}
+	
+	/*@PUT
+	@Path("setSucc")
+	@Consumes("application/xml")
+	public void setSucc(JAXBElement<NodeInfo> succ) throws Error, Failed {
+		NodeInfo s = succ.getValue();
+		new NodeService(uriInfo).setSucc(s);
+	}*/
 		
-		/*@PUT
-		@Path("setSucc")
-		@Consumes("application/xml")
-		public void setSucc(JAXBElement<NodeInfo> succ) throws Error, Failed {
-			NodeInfo s = succ.getValue();
-			new NodeService(uriInfo).setSucc(s);
-		}*/
-		
-		@PUT
-		@Path("setPred")
-		@Consumes("application/xml")
-		public void setPred(JAXBElement<NodeInfo> pred) throws Error, Failed {
-			NodeInfo p = pred.getValue();
-			new NodeService(uriInfo).setPred(p);
-		}
-
 }

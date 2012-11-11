@@ -48,11 +48,5 @@ public interface IDHTResource {
 	public void add(String k, String v) throws Error, Invalid;
 	
 	public void delete(String k, String v) throws Error, Invalid;
-
-	/*
-	 * ADD, Ranger
-	 * setPred, setSucc
-	 */
-	public void setPred(NodeInfo pred) throws Error;
 	
 }

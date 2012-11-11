@@ -151,23 +151,20 @@ public class DHT extends DHTBase
 	 */
 	private NodeInfo getSucc(NodeInfo info) throws Error, Failed {
 		NodeInfo localInfo = this.getNodeInfo();
-		if (localInfo.addr.equals(info.addr)) {
-			return getSucc();
-		} else {
-			// TODO: Do the Web service call
-			NodeInfo infoSucc = new NodeInfo();
-			// ?how to call web service by using known Uri?
-			Client c =Client.create();
-			UriBuilder ub = UriBuilder.fromUri(info.addr).path("find");
-			URI findPath = ub.queryParam("id", info.id).build();
-			WebResource r = c.resource(findPath);
-			ClientResponse response = r.get(ClientResponse.class);
-			if (response.getStatus() >= 300) {
-				throw new DHTBase.Failed("GET /find?id=ID");
+		// TODO, Ranger
+		// verify info==null?
+		if(info==null){
+			return null;
+		}
+		else {
+			if (localInfo.addr.equals(info.addr)) {
+				return getSucc();
 			} else {
-				infoSucc = (NodeInfo)response.getEntity(nodeInfoType).getValue();
+				// TODO: Do the Web service call
+				// how to call web service by using known Uri
+				// Do it in dht.main.WebClient.java
+				return client.getSucc(info.addr);
 			}
-			return infoSucc;
 		}
 	}
 
@@ -206,26 +203,25 @@ public class DHT extends DHTBase
 	protected NodeInfo getPred(NodeInfo info) throws Error,
 			Failed {
 		NodeInfo localInfo = this.getNodeInfo();
-		if (localInfo.addr.equals(info.addr)) {
-			return getPred();
+		// TODO, Ranger
+		// verify info==null?
+		if(info==null){
+			return null;
 		} else {
-			/*
-			 * TODO: Do the Web service call
-			 */
-			NodeInfo infoPred = new NodeInfo();
-			NodeInfo infoSucc = new NodeInfo();
-			infoSucc = getSucc(info);
-			Client c = Client.create();
-			UriBuilder ub = UriBuilder.fromUri(infoSucc.addr).path("getPred");
-			URI findPath = ub.build();
-			WebResource r = c.resource(findPath);
-			ClientResponse response = r.get(ClientResponse.class);
-			if (response.getStatus() >= 300) {
-				throw new DHTBase.Failed("GET /getPred");
+			if (localInfo.addr.equals(info.addr)) {
+				return getPred();
 			} else {
-				infoPred = (NodeInfo)response.getEntity(nodeInfoType).getValue();
+				/*
+				 * TODO: Do the Web service call
+				 */
+				/*NodeInfo infoPred = new NodeInfo();
+				NodeInfo infoSucc = new NodeInfo();
+				infoSucc = getSucc(info);
+				infoPred = client.getPred(infoSucc.addr);
+				return infoPred;*/
+				
+				return client.getPred(info.addr);
 			}
-			return infoPred;
 		}
 	}
 
@@ -245,9 +241,9 @@ public class DHT extends DHTBase
 	/*
 	 * Set the local predecessor pointer on the RMI server.
 	 */
-	// TODO, Ranger
 	// change protected method visible to public
-	public void setPred(NodeInfo pred) throws Error {
+	// No necessary to do since setPred will execute in background notify()
+	protected void setPred(NodeInfo pred) throws Error {
 		try {
 			routing.setPred(pred);
 		} catch (RemoteException e) {
@@ -270,18 +266,7 @@ public class DHT extends DHTBase
 				/*
 				 * TODO: Do the Web service call to the remote node.
 				 */
-				NodeInfo cloestPredNode = new NodeInfo();
-				Client c = Client.create();
-				UriBuilder ub = UriBuilder.fromUri(info.addr).path("finger");
-				URI getPath = ub.queryParam("id", info.id).build();
-				WebResource r = c.resource(getPath);
-				ClientResponse response = r.get(ClientResponse.class);
-				if (response.getStatus() >= 300) {
-					throw new DHTBase.Failed("GET /finger?id=ID");
-				} else {
-					cloestPredNode = (NodeInfo)response.getEntity(nodeInfoType).getValue();
-				}
-				return cloestPredNode;
+				return client.closestPrecedingFinger(info.addr, id);
 			} else {
 				/*
 				 * Without finger tables, just use the successor pointer.
@@ -385,7 +370,11 @@ public class DHT extends DHTBase
 			 * 
 			 * Do the Web service call.
 			 */
-			debug("Joining succ with null pred.");
+			//?necessary to do different in if-else?
+			// notify did the above action: 
+			// Successor's predecessor is not set, so we will become pred.
+			
+			debug("Joining succ with null pred."); // TODO, why alaways alarm this?
 			TableRep db = client.notify(succ, info);
 			return notifyContinue(db);
 		} else if (inInterval(predOfSucc.id, info.id, succ.id, false)) {
@@ -397,8 +386,15 @@ public class DHT extends DHTBase
 			 * 
 			 * Do the Web service call.
 			 */
+			// TODO, Ranger
+			//?Successor's predecessor should be our predecessor?
+			//setPred(predOfSucc);
+			
+			// Notify pred of succ that we believe we are its predecessor. 
+			//?Is the above subscription true?
+			
 			debug("Joining succ as new, closer pred.");
-			TableRep db = client.notify(succ, info);
+			TableRep db = client.notify(predOfSucc, info); // TODO, change succ to predOfSucc
 			return notifyContinue(db);
 		} else if (inInterval(info.id, predOfSucc.id, succ.id, false)) {
 			/*
@@ -441,6 +437,8 @@ public class DHT extends DHTBase
 			 */
 			TableRep db = transferBindings(cand.id);
 			debug("Transferring bindings to node id="+cand.id);
+			// TODO, test
+			System.out.println("I'm db: " + db.info.id);
 			return db;
 		} else {
 			/*
@@ -564,22 +562,7 @@ public class DHT extends DHTBase
 			 * TODO: Do the Web service call.
 			 */
 			// just do a Web service call, no RMI following, --Ranger
-			List<String> keys = null;
-			GenericType<List<String>> genericType = new GenericType<List<String>>(){};
-			Client c = Client.create();
-			UriBuilder ub = UriBuilder.fromUri(n.addr);
-			URI getPath = ub.queryParam("key", k).build();
-			WebResource r = c.resource(getPath);
-			ClientResponse response = r.get(ClientResponse.class);
-			if (response.getStatus() >= 300) {
-				throw new DHTBase.Failed("GET ?key=KEY");
-			} else {
-				//?how to retrieve a List<String> from Web service
-				keys = (List<String>)response.getEntity(genericType);
-			}
-			ArrayList<String> keyArray = new ArrayList<String>();
-			String[] result = (String[]) keys.toArray();
-			return result;
+			return client.get(n.addr, k);
 		}
 	}
 
@@ -611,14 +594,7 @@ public class DHT extends DHTBase
 			/*
 			 * TODO: Do the Web service call.
 			 */
-			Client c = Client.create();
-			UriBuilder ub = UriBuilder.fromUri(n.addr);
-			URI putPath = ub.queryParam("key", k).queryParam("val", v).build();
-			WebResource r = c.resource(putPath);
-			ClientResponse response = r.put(ClientResponse.class);
-			if (response.getStatus() >= 300) {
-				throw new DHTBase.Failed("PUT ?key=KEY&val=VAL");
-			}
+			client.add(n.addr, k, v);
 		}
 	}
 	
@@ -635,6 +611,9 @@ public class DHT extends DHTBase
 			NodeInfo info = getNodeInfo();
 			NodeInfo pred = getPred();
 
+			// TODO
+			System.out.println("k's hashcode: " 
+					+ Math.abs(k.hashCode() % IRouting.NKEYS));
 			if (pred != null && inInterval(kid, pred.id, info.id, true)) {
 				/*
 				 * This node covers the interval in which k should be stored.
@@ -672,14 +651,7 @@ public class DHT extends DHTBase
 			/*
 			 * TODO: Do the Web service call.
 			 */
-			Client c = Client.create();
-			UriBuilder ub = UriBuilder.fromUri(n.addr);
-			URI deletePath = ub.queryParam("key", k).queryParam("val", v).build();
-			WebResource r = c.resource(deletePath);
-			ClientResponse response = r.delete(ClientResponse.class);
-			if (response.getStatus() >= 300) {
-				throw new DHTBase.Failed("DELETE ?key=KEY&val=VAL");
-			}
+			client.delete(n.addr, k, v);
 		}
 	}
 
@@ -760,22 +732,8 @@ public class DHT extends DHTBase
 		// find succ
 		succ = findSuccessor(remoteUri, info.id);
 		// this node's pred = succ's pred
-		NodeInfo pred = getPred(succ);
+//		NodeInfo pred = getPred(succ);
 		// succ's pred = this node
-		Client c = Client.create();
-		UriBuilder ub = UriBuilder.fromUri(succ.addr);
-		URI putPath = ub.build();
-		WebResource r = c.resource(putPath);
-		ClientResponse response = r.put(ClientResponse.class, info); // TODO error
-		if (response.getStatus() >= 300) {
-			throw new DHTBase.Failed("PUT /setPred");
-		} else {
-			// the next step is to initialize this nodes's finger table
-			// and, this is doing in the background
-			
-			// then , the finger tables of other nodes are updated
-		}
-		
 		
 		// TODO, Ranger
 		// local is the remote's succ? 

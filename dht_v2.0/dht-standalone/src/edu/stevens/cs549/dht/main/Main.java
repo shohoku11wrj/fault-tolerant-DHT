@@ -3,8 +3,10 @@ package edu.stevens.cs549.dht.main;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -250,6 +252,7 @@ public class Main {
 		 */
 		CliClient client = new CliClient(INFO, stateServer(), routingServer(), main);
 		HttpServer httpServer = main.startHttpServer();
+		// TODO, Change Frequence
 		Thread t = new Thread(new Background(5000, 8, main, client.getDHT()));
 		t.start();
 		/*

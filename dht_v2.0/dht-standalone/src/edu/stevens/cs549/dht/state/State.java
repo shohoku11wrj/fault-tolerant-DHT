@@ -203,7 +203,7 @@ public class State extends UnicastRemoteObject implements IState, IRouting {
 		return this.finger[i];
 	}
 
-	public synchronized NodeInfo closestPrecedingFinger(int id) throws Error {
+	public synchronized NodeInfo closestPrecedingFinger(int id) throws Error, RemoteException {
 		checkFailed();
 		/*
 		 * TODO: Get closest preceding finger for id, to continue search at that node.
@@ -225,19 +225,24 @@ public class State extends UnicastRemoteObject implements IState, IRouting {
 		for(int i=IRouting.NFINGERS; i>0; i--) {
 			int UB = finger[i].id % IRouting.NKEYS;
 			int LB = finger[i-1].id % IRouting.NKEYS;
+//			// TODO, test
+//			System.out.print(" <--i="+i+": ");
+//			System.out.print("finger_id:"+id+"; ");
+//			System.out.print("finger_UB:"+UB+"; ");
+//			System.out.print("finger_LB:"+LB+";--> ");
 			if (id==UB) 
-				return finger[i-1];
+				return getFinger(i-1);
 			if (LB < UB) {
 				UB = (UB - LB);
-				id = (id - LB);
-				if(0<id && id<UB) {
-					return finger[i-1];
+				LB = (id - LB);
+				if(0<=LB && LB<UB) {
+					return getFinger(i-1);
 				}
 			} else if (UB < LB) {
 				UB = (UB + (IRouting.NKEYS - LB)) % IRouting.NKEYS;
-				id = (id + (IRouting.NKEYS - LB)) % IRouting.NKEYS;
-				if(0 < id && id < UB) {
-					return finger[i-1];
+				LB = (id + (IRouting.NKEYS - LB)) % IRouting.NKEYS;
+				if(0<=LB && LB<UB) {
+					return getFinger(i-1);
 				}
 			}
 		}

@@ -1,6 +1,8 @@
 package edu.stevens.cs549.dht.main;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBElement;
@@ -12,6 +14,9 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 
 import edu.stevens.cs549.dht.activity.DHTBase;
+import edu.stevens.cs549.dht.activity.DHTBase.Error;
+import edu.stevens.cs549.dht.activity.DHTBase.Failed;
+import edu.stevens.cs549.dht.activity.DHTBase.Invalid;
 import edu.stevens.cs549.dht.activity.NodeInfo;
 import edu.stevens.cs549.dht.resource.NodeResource;
 import edu.stevens.cs549.dht.resource.TableRep;
@@ -55,6 +60,7 @@ public class WebClient {
 	
 	private GenericType<JAXBElement<TableRow>> tableRowType = new GenericType<JAXBElement<TableRow>>() { };
 
+	private GenericType<JAXBElement<String>> stringType = new GenericType<JAXBElement<String>>() { };
 
 	/*
 	 * Ping a remote site to see if it is still available.
@@ -112,6 +118,91 @@ public class WebClient {
 			throw new DHTBase.Failed("GET /find?id=ID");
 		} else {
 			return (NodeInfo)response.getEntity(nodeInfoType).getValue();
+		}
+	}
+	
+	/* TODO, Ranger
+	 * Web Service call
+	 * getSucc, getPred, 
+	 */
+	
+	public NodeInfo getSucc(URI addr) throws DHTBase.Error, DHTBase.Failed  {
+		UriBuilder ub = UriBuilder.fromUri(addr).path("getSucc");
+		URI findPath = ub.build();
+		WebResource r = client.resource(findPath);
+		ClientResponse response = r.get(ClientResponse.class);
+		if (response.getStatus() >= 300) {
+			throw new DHTBase.Failed("GET /getSucc");
+		} else {
+			return (NodeInfo)response.getEntity(nodeInfoType).getValue();
+		}
+	}
+	
+	public NodeInfo getPred(URI addr) throws DHTBase.Error, DHTBase.Failed {
+		UriBuilder ub = UriBuilder.fromUri(addr).path("getPred");
+		URI findPath = ub.build();
+		WebResource r = client.resource(findPath);
+		ClientResponse response = r.get(ClientResponse.class);
+		if (response.getStatus() >= 300) {
+			throw new DHTBase.Failed("GET /getPred");
+		} else {
+			return (NodeInfo)response.getEntity(nodeInfoType).getValue();
+		}
+	}
+	
+	public NodeInfo closestPrecedingFinger(URI addr, int id) throws DHTBase.Error, DHTBase.Failed {
+		UriBuilder ub = UriBuilder.fromUri(addr).path("clostPredFinger");
+		URI getPath = ub.queryParam("id", id).build();
+		WebResource r = client.resource(getPath);
+		ClientResponse response = r.get(ClientResponse.class);
+		if (response.getStatus() >= 300) {
+			throw new DHTBase.Failed("GET /clostPredFinger?id=ID");
+		} else {
+			return (NodeInfo)response.getEntity(nodeInfoType).getValue();
+		}
+	}
+	
+	public String[] get(URI addr, String k) throws DHTBase.Error, DHTBase.Failed {
+		//List<String> keys = null;
+		//GenericType<List<String>> genericType = new GenericType<List<String>>(){};
+		String keysFromWebService;
+		UriBuilder ub = UriBuilder.fromUri(addr);
+		URI getPath = ub.queryParam("key", k).build();
+		WebResource r = client.resource(getPath);
+		ClientResponse response = r.get(ClientResponse.class);
+		if (response.getStatus() >= 300) {
+			throw new DHTBase.Failed("GET ?key=KEY");
+		} else {
+			//?how to retrieve a List<String> from Web service
+			//keys = (List<String>)response.getEntity(genericType);
+			keysFromWebService=(String)response.getEntity(stringType).getValue();
+		}
+		//ArrayList<String> keyArray = new ArrayList<String>();
+		if(keysFromWebService==null){
+			return null;
+		} else {
+			String[] result = (String[]) keysFromWebService.split(";");
+			return result;
+		}
+	}
+	
+	public void add(URI addr, String k, String v) throws DHTBase.Error, DHTBase.Failed {
+		UriBuilder ub = UriBuilder.fromUri(addr);
+		URI putPath = ub.queryParam("key", k).queryParam("val", v).build();
+		WebResource r = client.resource(putPath);
+		ClientResponse response = r.put(ClientResponse.class);
+		if (response.getStatus() >= 300) {
+			throw new DHTBase.Failed("PUT ?key=KEY&val=VAL");
+		}
+	}
+	
+	public void delete(URI addr, String k, String v) throws DHTBase.Error, DHTBase.Failed {
+		UriBuilder ub = UriBuilder.fromUri(addr);
+		URI deletePath = ub.queryParam("key", k).queryParam("val", v).build();
+		WebResource r = client.resource(deletePath);
+		ClientResponse response = r.delete(ClientResponse.class);
+		if (response.getStatus() >= 300) {
+			throw new DHTBase.Failed("DELETE ?key=KEY&val=VAL");
 		}
 	}
 	
