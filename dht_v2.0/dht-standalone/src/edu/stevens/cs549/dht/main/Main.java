@@ -253,7 +253,7 @@ public class Main {
 		CliClient client = new CliClient(INFO, stateServer(), routingServer(), main);
 		HttpServer httpServer = main.startHttpServer();
 		// TODO, Change Frequence
-		Thread t = new Thread(new Background(5000, 8, main, client.getDHT()));
+		Thread t = new Thread(new Background(3000, 8, main, client.getDHT()));
 		t.start();
 		/*
 		 * Start the command-line loop.

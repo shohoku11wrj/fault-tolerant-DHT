@@ -17,10 +17,11 @@
 		<server.port.rmi>1099</server.port.rmi>
 
 		<!-- External DNS for AWS. -->
-		<server.external-dns>localhost</server.external-dns>
+		<server.external-dns>ec2-184-73-117-66.compute-1.amazonaws.com</server.external-dns>
 
 		<!-- Where to distribute jar files (using mvn package). -->
-		<server.dist>${server.testdir}</server.dist>
+		<!-- <server.dist>${server.testdir}</server.dist> -->
+		<server.dist>${user.home}/tmp/cs549/dht-test</server.dist>
 		<server.name>dht</server.name>		
 
 	</properties>
