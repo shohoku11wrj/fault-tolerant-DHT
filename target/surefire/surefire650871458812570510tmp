@@ -1,0 +1,5 @@
+#surefire
+#Sun Dec 02 22:27:46 EST 2012
+user.dir=/home/ranger/git/cs549/fault-tolerant/dht-standalone
+localRepository=/home/ranger/.m2/repository
+basedir=/home/ranger/git/cs549/fault-tolerant/dht-standalone

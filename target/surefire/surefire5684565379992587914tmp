@@ -1,0 +1,5 @@
+#surefire
+#Sun Nov 18 21:04:49 EST 2012
+user.dir=/home/ranger/workspace/dht-standalone
+localRepository=/home/ranger/.m2/repository
+basedir=/home/ranger/workspace/dht-standalone
