@@ -1,7 +1,7 @@
 fault-tolerant-DHT
 ==================
 
-fault-tolerant DHT
+Faul-tolerant Distributed HashTable, which is an academic project of Distributed Storage System written in Java RMI and RESTful API.
 
 Test Demo:
   The video shows TWO tests: 
